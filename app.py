@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from pyrogram import Client, filters
 from pyrogram.errors import SessionPasswordNeeded
-from pyrogram.sessions import StringSession
+from pyrogram.types import StringSession
 from pyrogram.types import Message
 import threading
 import time
