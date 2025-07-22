@@ -6,7 +6,7 @@ import asyncio
 
 api_id = int(os.getenv("apiid", 123456))
 api_hash = os.getenv("apihash", "your_api_hash")
-session_str = os.getenv("session_string", "your_session_string")
+session_str = os.getenv("ss", "your_session_string")
 
 def progress_callback(current, total, msg, start_time, label="Progress"):
     now = time.time()
