@@ -99,7 +99,7 @@ def start_bot():
     def run_userbot():
         # Run your userbot code here with the session string
 
-        app_client = Client(session_string=session_str, api_id, api_hash)
+        app_client = Client(session_str, api_id, api_hash)
 
         @app_client.on_message(filters.command("start") & filters.me)
         async def start_command(client: Client, message: Message):
