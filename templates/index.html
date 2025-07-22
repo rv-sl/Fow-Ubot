@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pyrogram Web Login</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: #eee;
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 1em;
+    border-radius: 8px;
+    background: #333;
+  }
+  input, button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 0.8em;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+  }
+  button {
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #555;
+  }
+  #status {
+    margin-top: 10px;
+    min-height: 1.5em;
+  }
+</style>
+</head>
+<body>
+
+<h2>Login to Telegram</h2>
+
+<div id="phone-section">
+  <input id="phone" placeholder="+1234567890" />
+  <button id="send-code-btn">Send Code</button>
+</div>
+
+<div id="code-section" style="display:none;">
+  <input id="code" placeholder="Enter verification code" />
+  <input id="password" placeholder="2FA Password (if any)" type="password" style="display:none; margin-top: 5px;" />
+  <button id="verify-code-btn">Verify Code</button>
+</div>
+
+<div id="status"></div>
+
+<script>
+  let phoneCodeHash = null;
+
+  const phoneInput = document.getElementById('phone');
+  const sendCodeBtn = document.getElementById('send-code-btn');
+  const codeSection = document.getElementById('code-section');
+  const codeInput = document.getElementById('code');
+  const passwordInput = document.getElementById('password');
+  const verifyCodeBtn = document.getElementById('verify-code-btn');
+  const statusDiv = document.getElementById('status');
+
+  sendCodeBtn.onclick = async () => {
+    const phone = phoneInput.value.trim();
+    if (!phone) {
+      statusDiv.textContent = 'Please enter a valid phone number.';
+      return;
+    }
+    sendCodeBtn.disabled = true;
+    statusDiv.textContent = 'Sending code...';
+
+    try {
+      const resp = await fetch('/send_code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone})
+      });
+      const data = await resp.json();
+
+      if (data.status === 'code_sent') {
+        phoneCodeHash = data.phone_code_hash;
+        statusDiv.textContent = 'Code sent! Check your Telegram.';
+        phoneInput.disabled = true;
+        sendCodeBtn.style.display = 'none';
+        codeSection.style.display = 'block';
+      } else {
+        statusDiv.textContent = 'Error: ' + data.message;
+        sendCodeBtn.disabled = false;
+      }
+    } catch (e) {
+      statusDiv.textContent = 'Error sending code: ' + e.message;
+      sendCodeBtn.disabled = false;
+    }
+  };
+
+  verifyCodeBtn.onclick = async () => {
+    const code = codeInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!code) {
+      statusDiv.textContent = 'Please enter the verification code.';
+      return;
+    }
+    verifyCodeBtn.disabled = true;
+    statusDiv.textContent = 'Verifying...';
+
+    try {
+      const resp = await fetch('/verify_code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({code, phone_code_hash: phoneCodeHash, password})
+      });
+      const data = await resp.json();
+
+      if (data.status === 'success') {
+        statusDiv.textContent = 'Logged in successfully! Starting bot...';
+        // Start bot
+        const startResp = await fetch('/start_bot', {method: 'POST'});
+        const startData = await startResp.json();
+        if (startData.status === 'bot_started') {
+          statusDiv.textContent = 'Bot started successfully!';
+          codeInput.disabled = true;
+          verifyCodeBtn.disabled = true;
+          passwordInput.disabled = true;
+        } else {
+          statusDiv.textContent = 'Bot start error: ' + startData.message;
+          verifyCodeBtn.disabled = false;
+        }
+      } else if (data.status === 'password_needed') {
+        statusDiv.textContent = 'Two-step verification enabled. Please enter your password.';
+        passwordInput.style.display = 'block';
+        verifyCodeBtn.disabled = false;
+      } else {
+        statusDiv.textContent = 'Error: ' + data.message;
+        verifyCodeBtn.disabled = false;
+      }
+    } catch (e) {
+      statusDiv.textContent = 'Verification error: ' + e.message;
+      verifyCodeBtn.disabled = false;
+    }
+  };
+</script>
+
+</body>
+</html>
