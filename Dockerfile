@@ -21,4 +21,5 @@ COPY . .
 EXPOSE 8000
 
 # Run the Flask app
-CMD ["python", "app.py"]
+#CMD ["python", "app.py"]
+CMD gunicorn --bind 0.0.0.0:8000 app:app & python3 bot.py
