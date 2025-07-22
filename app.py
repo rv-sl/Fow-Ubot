@@ -10,7 +10,7 @@ import os
 app = Flask(__name__)
 
 api_id = os.getenv("apiid")  # Replace with your API ID
-api_hash = ("apihash")  # Replace with your API Hash
+api_hash = os.getenv("apihash")  # Replace with your API Hash
 
 client = None
 phone_number_global = None
