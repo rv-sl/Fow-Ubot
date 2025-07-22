@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from pyrogram import Client, filters
 from pyrogram.errors import SessionPasswordNeeded
-from pyrogram.types import StringSession
+#from pyrogram.types import StringSession
 from pyrogram.types import Message
 import threading
 import time
@@ -99,7 +99,7 @@ def start_bot():
     def run_userbot():
         # Run your userbot code here with the session string
 
-        app_client = Client(StringSession(session_str), api_id, api_hash)
+        app_client = Client(session_string=session_str, api_id, api_hash)
 
         @app_client.on_message(filters.command("start") & filters.me)
         async def start_command(client: Client, message: Message):
